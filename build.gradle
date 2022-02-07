@@ -5,15 +5,25 @@ plugins {
 }
 
 group = 'net.mikoto.pixiv'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0'
 sourceCompatibility = '17'
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
+    // Spring
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Others
+    implementation 'com.alibaba:fastjson:1.2.79'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'mysql:mysql-connector-java:8.0.27'
+    implementation 'org.jetbrains:annotations:22.0.0'
+
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
