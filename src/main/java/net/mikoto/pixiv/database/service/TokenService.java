@@ -1,7 +1,7 @@
 package net.mikoto.pixiv.database.service;
 
+import net.mikoto.pixiv.api.pojo.ServiceType;
 import net.mikoto.pixiv.database.exception.UnknownServiceTypeException;
-import net.mikoto.pixiv.database.pojo.ServiceType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;

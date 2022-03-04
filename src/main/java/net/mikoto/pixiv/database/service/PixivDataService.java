@@ -1,8 +1,8 @@
 package net.mikoto.pixiv.database.service;
 
+import net.mikoto.pixiv.api.pojo.IndexType;
+import net.mikoto.pixiv.api.pojo.PixivData;
 import net.mikoto.pixiv.database.exception.UnknownServiceTypeException;
-import net.mikoto.pixiv.database.pojo.IndexType;
-import net.mikoto.pixiv.database.pojo.PixivData;
 
 import java.sql.SQLException;
 

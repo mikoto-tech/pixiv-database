@@ -1,6 +1,6 @@
 package net.mikoto.pixiv.database.service;
 
-import net.mikoto.pixiv.database.pojo.User;
+import net.mikoto.pixiv.api.pojo.User;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;

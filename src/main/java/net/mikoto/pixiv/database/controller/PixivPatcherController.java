@@ -2,9 +2,9 @@ package net.mikoto.pixiv.database.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import net.mikoto.pixiv.api.pojo.PixivData;
+import net.mikoto.pixiv.api.pojo.ServiceType;
 import net.mikoto.pixiv.database.exception.UnknownServiceTypeException;
-import net.mikoto.pixiv.database.pojo.PixivData;
-import net.mikoto.pixiv.database.pojo.ServiceType;
 import net.mikoto.pixiv.database.service.PixivDataService;
 import net.mikoto.pixiv.database.service.TokenService;
 import org.jetbrains.annotations.NotNull;

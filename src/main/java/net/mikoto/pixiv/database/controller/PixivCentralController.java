@@ -1,9 +1,9 @@
 package net.mikoto.pixiv.database.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import net.mikoto.pixiv.api.pojo.ServiceType;
+import net.mikoto.pixiv.api.pojo.User;
 import net.mikoto.pixiv.database.exception.UnknownServiceTypeException;
-import net.mikoto.pixiv.database.pojo.ServiceType;
-import net.mikoto.pixiv.database.pojo.User;
 import net.mikoto.pixiv.database.service.TokenService;
 import net.mikoto.pixiv.database.service.UserService;
 import org.jetbrains.annotations.NotNull;
@@ -107,10 +107,10 @@ public class PixivCentralController {
     }
 
     @RequestMapping(
-            value = "/central/addUser",
+            value = "/central/insertUser",
             method = RequestMethod.GET
     )
-    public void addUser(
+    public void insertUser(
             @NotNull HttpServletResponse response,
             @RequestParam @NotNull String key,
             @RequestParam @NotNull String userName,

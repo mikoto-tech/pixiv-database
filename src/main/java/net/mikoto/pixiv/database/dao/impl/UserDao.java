@@ -1,7 +1,7 @@
 package net.mikoto.pixiv.database.dao.impl;
 
+import net.mikoto.pixiv.api.pojo.User;
 import net.mikoto.pixiv.database.dao.BaseDao;
-import net.mikoto.pixiv.database.pojo.User;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;

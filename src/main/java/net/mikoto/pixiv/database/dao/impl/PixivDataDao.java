@@ -1,10 +1,10 @@
 package net.mikoto.pixiv.database.dao.impl;
 
+import net.mikoto.pixiv.api.pojo.IndexData;
+import net.mikoto.pixiv.api.pojo.IndexType;
+import net.mikoto.pixiv.api.pojo.PixivData;
 import net.mikoto.pixiv.database.dao.BaseDao;
 import net.mikoto.pixiv.database.exception.UnknownServiceTypeException;
-import net.mikoto.pixiv.database.pojo.IndexData;
-import net.mikoto.pixiv.database.pojo.IndexType;
-import net.mikoto.pixiv.database.pojo.PixivData;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;

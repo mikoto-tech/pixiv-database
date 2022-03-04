@@ -17,6 +17,9 @@ dependencies {
     // Spring
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // Mikoto
+    implementation 'net.mikoto.pixiv:pixiv-api:1.2.0'
+
     // Others
     implementation 'com.alibaba:fastjson:1.2.79'
     implementation 'commons-io:commons-io:2.11.0'

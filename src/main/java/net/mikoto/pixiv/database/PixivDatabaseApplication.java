@@ -1,9 +1,9 @@
 package net.mikoto.pixiv.database;
 
+import net.mikoto.pixiv.api.pojo.ServiceType;
 import net.mikoto.pixiv.database.dao.impl.PixivDataDao;
 import net.mikoto.pixiv.database.dao.impl.UserDao;
 import net.mikoto.pixiv.database.exception.UnknownServiceTypeException;
-import net.mikoto.pixiv.database.pojo.ServiceType;
 import net.mikoto.pixiv.database.service.TokenService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.boot.SpringApplication;
