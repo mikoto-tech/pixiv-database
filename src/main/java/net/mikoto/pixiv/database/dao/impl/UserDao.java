@@ -24,11 +24,11 @@ public class UserDao extends BaseDao {
         Connection connection = getConnection();
         String sql = "INSERT INTO pixiv_web_data.user_data (user_name, user_password, user_salt, user_key, profile_url, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?);";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, user.getName());
-        preparedStatement.setString(2, user.getPassword());
-        preparedStatement.setString(3, user.getSalt());
-        preparedStatement.setString(4, user.getKey());
-        preparedStatement.setString(5, user.getProfile());
+        preparedStatement.setString(1, user.getUserName());
+        preparedStatement.setString(2, user.getUserPassword());
+        preparedStatement.setString(3, user.getUserSalt());
+        preparedStatement.setString(4, user.getUserKey());
+        preparedStatement.setString(5, user.getProfileUrl());
         preparedStatement.setString(6, user.getCreateTime());
         preparedStatement.setString(7, user.getUpdateTime());
         preparedStatement.executeUpdate();
@@ -109,15 +109,21 @@ public class UserDao extends BaseDao {
         return getUser(user, sql);
     }
 
+    public User getUserByKey(String userKey) throws SQLException {
+        User user = new User();
+        String sql = "SELECT * FROM pixiv_web_data.user_data WHERE user_key='" + userKey + "'";
+        return getUser(user, sql);
+    }
+
     private User getUser(User user, String sql) throws SQLException {
         ResultSet resultSet = executeQuery(sql);
         if (resultSet.next()) {
             user.setId(resultSet.getInt("pk_id"));
-            user.setName(resultSet.getString("user_name"));
-            user.setPassword(resultSet.getString("user_password"));
-            user.setSalt(resultSet.getString("user_salt"));
-            user.setKey(resultSet.getString("user_key"));
-            user.setProfile(resultSet.getString("profile_url"));
+            user.setUserName(resultSet.getString("user_name"));
+            user.setUserPassword(resultSet.getString("user_password"));
+            user.setUserSalt(resultSet.getString("user_salt"));
+            user.setUserKey(resultSet.getString("user_key"));
+            user.setProfileUrl(resultSet.getString("profile_url"));
             user.setCreateTime(resultSet.getDate("create_time").toString());
             user.setUpdateTime(resultSet.getDate("update_time").toString());
         }

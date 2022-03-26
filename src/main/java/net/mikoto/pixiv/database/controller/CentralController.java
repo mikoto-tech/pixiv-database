@@ -1,11 +1,9 @@
 package net.mikoto.pixiv.database.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import net.mikoto.pixiv.api.pojo.ServiceType;
+import net.mikoto.pixiv.api.http.database.central.*;
 import net.mikoto.pixiv.api.pojo.User;
-import net.mikoto.pixiv.database.exception.UnknownServiceTypeException;
-import net.mikoto.pixiv.database.service.TokenService;
-import net.mikoto.pixiv.database.service.UserService;
+import net.mikoto.pixiv.database.service.impl.UserServiceImpl;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,7 +15,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
-import static net.mikoto.pixiv.database.PixivDatabaseApplication.PROPERTIES;
+import static net.mikoto.pixiv.api.http.HttpApi.*;
+import static net.mikoto.pixiv.database.constant.Properties.MAIN_PROPERTIES;
 
 /**
  * @author mikoto
@@ -35,91 +34,24 @@ import static net.mikoto.pixiv.database.PixivDatabaseApplication.PROPERTIES;
  * B0001 -- 未知数据库错误
  */
 @RestController
-public class PixivCentralController {
+public class CentralController implements InsertUser, GetUserByUserName, GetUserByUserId, GetUserByUserKey, UpdateUserName, UpdateUserProfile, UpdateUserPassword, UpdateUserKey {
     private static final String CENTRAL_CONNECTOR_KEY = "CENTRAL_CONNECTOR_KEY";
 
     @RequestMapping(
-            value = "/central/addToken",
+            value = DATABASE_CENTRAL + DATABASE_CENTRAL_INSERT_USER,
             method = RequestMethod.GET
     )
-    public void addToken(
+    @Override
+    public void insertUserHttpApi(
             @NotNull HttpServletResponse response,
             @RequestParam @NotNull String key,
-            @RequestParam @NotNull ServiceType serviceType,
-            @RequestParam @NotNull String token
-    ) throws IOException, UnknownServiceTypeException {
-        // SetHeader
-        response.setContentType("application/json;charset=UTF-8");
-        response.setHeader("Access-Control-Allow-Origin", "*");
-
-        // InitVariable
-        PrintWriter out = response.getWriter();
-        JSONObject outputJsonObject = new JSONObject();
-
-        // Confirm key
-        if (key.equals(PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
-            outputJsonObject.put("success", true);
-            outputJsonObject.put("code", "00000");
-            TokenService.getInstance().addToken(serviceType, token);
-        } else {
-            outputJsonObject.put("success", false);
-            outputJsonObject.put("code", "A0001");
-        }
-
-        // output
-        out.println(outputJsonObject.toJSONString());
-    }
-
-    @RequestMapping(
-            value = "/central/removeToken",
-            method = RequestMethod.GET
-    )
-    public void removeToken(
-            @NotNull HttpServletResponse response,
-            @RequestParam @NotNull String key,
-            @RequestParam @NotNull ServiceType serviceType,
-            @RequestParam @NotNull String token
-    ) throws IOException, UnknownServiceTypeException {
-        // SetHeader
-        response.setContentType("application/json;charset=UTF-8");
-        response.setHeader("Access-Control-Allow-Origin", "*");
-
-        // InitVariable
-        PrintWriter out = response.getWriter();
-        JSONObject outputJsonObject = new JSONObject();
-
-        // Confirm key
-        if (key.equals(PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
-            if (TokenService.getInstance().removeToken(serviceType, token)) {
-                outputJsonObject.put("success", true);
-                outputJsonObject.put("code", "00000");
-            } else {
-                outputJsonObject.put("success", false);
-                outputJsonObject.put("code", "A0003");
-            }
-        } else {
-            outputJsonObject.put("success", false);
-            outputJsonObject.put("code", "A0001");
-        }
-
-        // output
-        out.println(outputJsonObject.toJSONString());
-    }
-
-    @RequestMapping(
-            value = "/central/insertUser",
-            method = RequestMethod.GET
-    )
-    public void insertUser(
-            @NotNull HttpServletResponse response,
-            @RequestParam @NotNull String key,
-            @RequestParam @NotNull String userName,
-            @RequestParam @NotNull String userPassword,
-            @RequestParam @NotNull String userSalt,
-            @RequestParam @NotNull String userKey,
-            @RequestParam @NotNull String profileUrl,
-            @RequestParam @NotNull String createTime,
-            @RequestParam @NotNull String updateTime
+            @RequestParam String userName,
+            @RequestParam String userPassword,
+            @RequestParam String userSalt,
+            @RequestParam String userKey,
+            @RequestParam String profileUrl,
+            @RequestParam String createTime,
+            @RequestParam String updateTime
     ) throws IOException, SQLException {
         // SetHeader
         response.setContentType("application/json;charset=UTF-8");
@@ -130,17 +62,17 @@ public class PixivCentralController {
         JSONObject outputJsonObject = new JSONObject();
 
         // Confirm key
-        if (key.equals(PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
-            if (UserService.getInstance().checkUserName(userName)) {
+        if (key.equals(MAIN_PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
+            if (UserServiceImpl.getInstance().checkUserName(userName)) {
                 User user = new User();
-                user.setName(userName);
-                user.setPassword(userPassword);
-                user.setSalt(userSalt);
-                user.setKey(userKey);
-                user.setProfile(profileUrl);
+                user.setUserName(userName);
+                user.setUserPassword(userPassword);
+                user.setUserSalt(userSalt);
+                user.setUserKey(userKey);
+                user.setProfileUrl(profileUrl);
                 user.setCreateTime(createTime);
                 user.setUpdateTime(updateTime);
-                if (UserService.getInstance().addUser(user)) {
+                if (UserServiceImpl.getInstance().addUser(user)) {
                     outputJsonObject.put("success", true);
                     outputJsonObject.put("code", "00000");
                 } else {
@@ -161,50 +93,65 @@ public class PixivCentralController {
     }
 
     @RequestMapping(
-            value = "/central/getUserByUserName",
+            value = DATABASE_CENTRAL + DATABASE_CENTRAL_GET_USER_BY_USER_NAME,
             method = RequestMethod.GET
     )
-    public void getUser(
+    @Override
+    public JSONObject getUserByUserNameHttpApi(
             @NotNull HttpServletResponse response,
-            @RequestParam @NotNull String key,
-            @RequestParam @NotNull String userName
-    ) throws IOException, SQLException {
-        outputUser(response, UserService.getInstance().getUser(userName), key);
+            @RequestParam String key,
+            @RequestParam String userName
+    ) throws IOException, SQLException, IllegalAccessException {
+        return outputUser(response, UserServiceImpl.getInstance().getUser(userName), key);
     }
 
     @RequestMapping(
-            value = "/central/getUserByUserId",
+            value = DATABASE_CENTRAL + DATABASE_CENTRAL_GET_USER_BY_USER_ID,
             method = RequestMethod.GET
     )
-    public void getUser(
+    @Override
+    public JSONObject getUserByUserIdHttpApi(
             @NotNull HttpServletResponse response,
             @RequestParam @NotNull String key,
-            @RequestParam int userId
-    ) throws IOException, SQLException {
-        outputUser(response, UserService.getInstance().getUser(userId), key);
+            @RequestParam String userId
+    ) throws IOException, SQLException, IllegalAccessException {
+        return outputUser(response, UserServiceImpl.getInstance().getUser(Integer.parseInt(userId)), key);
     }
 
     @RequestMapping(
-            value = "/central/changeUserName",
+            value = DATABASE_CENTRAL + DATABASE_CENTRAL_GET_USER_BY_USER_KEY,
             method = RequestMethod.GET
     )
-    public void changeUserName(
+    @Override
+    public JSONObject getUserByUserKeyHttpApi(
             @NotNull HttpServletResponse response,
             @RequestParam @NotNull String key,
-            @RequestParam int userId,
+            @RequestParam @NotNull String userKey
+    ) throws IOException, SQLException, IllegalAccessException {
+        return outputUser(response, UserServiceImpl.getInstance().getUserByKey(userKey), key);
+    }
+
+    @Override
+    @RequestMapping(
+            value = DATABASE_CENTRAL + DATABASE_CENTRAL_UPDATE_USER_NAME,
+            method = RequestMethod.GET
+    )
+    public JSONObject updateUserNameHttpApi(
+            @NotNull HttpServletResponse response,
+            @RequestParam @NotNull String key,
+            @RequestParam String userId,
             @RequestParam String newUserName
-    ) throws SQLException, IOException {
+    ) throws SQLException {
         // SetHeader
         response.setContentType("application/json;charset=UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
 
         // InitVariable
-        PrintWriter out = response.getWriter();
         JSONObject outputJsonObject = new JSONObject();
 
         // Confirm key
-        if (key.equals(PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
-            UserService.getInstance().changeName(userId, newUserName);
+        if (key.equals(MAIN_PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
+            UserServiceImpl.getInstance().changeName(Integer.parseInt(userId), newUserName);
             outputJsonObject.put("success", true);
             outputJsonObject.put("code", "00000");
         } else {
@@ -212,32 +159,31 @@ public class PixivCentralController {
             outputJsonObject.put("code", "A0001");
         }
 
-        // output
-        out.println(outputJsonObject.toJSONString());
+        return outputJsonObject;
     }
 
     @RequestMapping(
-            value = "/central/changeUserPassword",
+            value = DATABASE_CENTRAL + DATABASE_CENTRAL_UPDATE_USER_PASSWORD,
             method = RequestMethod.GET
     )
-    public void changeUserPassword(
+    @Override
+    public JSONObject updateUserPasswordHttpApi(
             @NotNull HttpServletResponse response,
             @RequestParam @NotNull String key,
-            @RequestParam int userId,
+            @RequestParam String userId,
             @RequestParam String newUserPassword,
             @RequestParam String newUserSalt
-    ) throws SQLException, IOException {
+    ) throws SQLException {
         // SetHeader
         response.setContentType("application/json;charset=UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
 
         // InitVariable
-        PrintWriter out = response.getWriter();
         JSONObject outputJsonObject = new JSONObject();
 
         // Confirm key
-        if (key.equals(PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
-            UserService.getInstance().changePassword(userId, newUserPassword, newUserSalt);
+        if (key.equals(MAIN_PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
+            UserServiceImpl.getInstance().changePassword(Integer.parseInt(userId), newUserPassword, newUserSalt);
             outputJsonObject.put("success", true);
             outputJsonObject.put("code", "00000");
         } else {
@@ -245,18 +191,18 @@ public class PixivCentralController {
             outputJsonObject.put("code", "A0001");
         }
 
-        // output
-        out.println(outputJsonObject.toJSONString());
+        return outputJsonObject;
     }
 
+    @Override
     @RequestMapping(
-            value = "/central/changeUserKey",
+            value = DATABASE_CENTRAL + DATABASE_CENTRAL_UPDATE_USER_KEY,
             method = RequestMethod.GET
     )
-    public void changeUserKey(
+    public JSONObject updateUserKeyHttpApi(
             @NotNull HttpServletResponse response,
             @RequestParam @NotNull String key,
-            @RequestParam int userId,
+            @RequestParam String userId,
             @RequestParam String newUserKey
     ) throws SQLException, IOException {
         // SetHeader
@@ -268,8 +214,8 @@ public class PixivCentralController {
         JSONObject outputJsonObject = new JSONObject();
 
         // Confirm key
-        if (key.equals(PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
-            UserService.getInstance().changeKey(userId, newUserKey);
+        if (key.equals(MAIN_PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
+            UserServiceImpl.getInstance().changeKey(Integer.parseInt(userId), newUserKey);
             outputJsonObject.put("success", true);
             outputJsonObject.put("code", "00000");
         } else {
@@ -278,17 +224,18 @@ public class PixivCentralController {
         }
 
         // output
-        out.println(outputJsonObject.toJSONString());
+        return outputJsonObject;
     }
 
     @RequestMapping(
-            value = "/central/changeUserProfile",
+            value = DATABASE_CENTRAL + DATABASE_CENTRAL_UPDATE_USER_PROFILE,
             method = RequestMethod.GET
     )
-    public void changeUserProfile(
+    @Override
+    public JSONObject updateUserProfileHttpApi(
             @NotNull HttpServletResponse response,
             @RequestParam @NotNull String key,
-            @RequestParam int userId,
+            @RequestParam String userId,
             @RequestParam String newUserProfile
     ) throws SQLException, IOException {
         // SetHeader
@@ -300,8 +247,8 @@ public class PixivCentralController {
         JSONObject outputJsonObject = new JSONObject();
 
         // Confirm key
-        if (key.equals(PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
-            UserService.getInstance().changeProfile(userId, newUserProfile);
+        if (key.equals(MAIN_PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
+            UserServiceImpl.getInstance().changeProfile(Integer.parseInt(userId), newUserProfile);
             outputJsonObject.put("success", true);
             outputJsonObject.put("code", "00000");
         } else {
@@ -309,22 +256,20 @@ public class PixivCentralController {
             outputJsonObject.put("code", "A0001");
         }
 
-        // output
-        out.println(outputJsonObject.toJSONString());
+        return outputJsonObject;
     }
 
-    private void outputUser(@NotNull HttpServletResponse response, User user, @NotNull String key) throws IOException {
+    private @NotNull JSONObject outputUser(@NotNull HttpServletResponse response, User user, @NotNull String key) throws IOException, IllegalAccessException {
         // SetHeader
         response.setContentType("application/json;charset=UTF-8");
         response.setHeader("Access-Control-Allow-Origin", "*");
 
         // InitVariable
-        PrintWriter out = response.getWriter();
         JSONObject outputJsonObject = new JSONObject();
 
         // Confirm key
-        if (key.equals(PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
-            if (user.getName() != null) {
+        if (key.equals(MAIN_PROPERTIES.getProperty(CENTRAL_CONNECTOR_KEY))) {
+            if (user.getUserName() != null) {
                 outputJsonObject.put("success", true);
                 outputJsonObject.put("code", "00000");
                 outputJsonObject.put("body", user.toJsonObject());
@@ -338,6 +283,6 @@ public class PixivCentralController {
         }
 
         // output
-        out.println(outputJsonObject.toJSONString());
+        return outputJsonObject;
     }
 }

@@ -1,8 +1,8 @@
 package net.mikoto.pixiv.database.dao.impl;
 
+import net.mikoto.pixiv.api.pojo.Artwork;
 import net.mikoto.pixiv.api.pojo.IndexData;
 import net.mikoto.pixiv.api.pojo.IndexType;
-import net.mikoto.pixiv.api.pojo.PixivData;
 import net.mikoto.pixiv.database.dao.BaseDao;
 import net.mikoto.pixiv.database.exception.UnknownServiceTypeException;
 import org.jetbrains.annotations.NotNull;
@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import static net.mikoto.pixiv.database.PixivDatabaseApplication.PIXIV_DATA_DAO;
+import static net.mikoto.pixiv.database.PixivDatabaseApplication.ARTWORK_DAO;
 
 /**
  * @author mikoto
  * @date 2022/2/7 5:18
  */
-public class PixivDataDao extends BaseDao {
+public class ArtworkDao extends BaseDao {
     /**
      * Constants.
      */
@@ -32,7 +32,7 @@ public class PixivDataDao extends BaseDao {
     private final ArrayList<IndexData> likeCountIndexDataArrayList = new ArrayList<>();
     private final ArrayList<IndexData> viewCountIndexDataArrayList = new ArrayList<>();
 
-    public PixivDataDao(String url, String userName, String password) {
+    public ArtworkDao(String url, String userName, String password) {
         super(url, userName, password);
     }
 
@@ -47,14 +47,14 @@ public class PixivDataDao extends BaseDao {
 
                 // Get size
                 String sql = "SELECT count(*) FROM pixiv_data." + indexData.getTableName() + ";";
-                ResultSet resultSet = PIXIV_DATA_DAO.executeQuery(sql);
+                ResultSet resultSet = ARTWORK_DAO.executeQuery(sql);
                 if (resultSet.next()) {
                     indexData.setSize(resultSet.getInt("count(*)"));
                 }
 
                 // Get smallest
                 sql = "SELECT * FROM pixiv_data." + indexData.getTableName() + " ORDER BY " + indexType + " ASC;";
-                resultSet = PIXIV_DATA_DAO.executeQuery(sql);
+                resultSet = ARTWORK_DAO.executeQuery(sql);
                 if (resultSet.next()) {
                     indexData.setSmallest(resultSet.getInt(String.valueOf(indexType)));
                 }
@@ -77,104 +77,104 @@ public class PixivDataDao extends BaseDao {
      * @return A pixiv data object.
      * @throws SQLException A sql error.
      */
-    public PixivData queryPixivData(String sql) throws SQLException {
+    public Artwork queryArtwork(String sql) throws SQLException {
         ResultSet resultSet = executeQuery(sql);
-        PixivData pixivData = new PixivData();
+        Artwork artwork = new Artwork();
 
         if (resultSet.next()) {
-            pixivData.setArtworkId(resultSet.getInt("pk_artwork_id"));
-            pixivData.setArtworkTitle(resultSet.getString("artwork_title"));
-            pixivData.setAuthorId(resultSet.getInt("author_id"));
-            pixivData.setAuthorName(resultSet.getString("author_name"));
-            pixivData.setDescription(resultSet.getString("description"));
-            pixivData.setPageCount(resultSet.getInt("page_count"));
-            pixivData.setBookmarkCount(resultSet.getInt("bookmark_count"));
-            pixivData.setLikeCount(resultSet.getInt("like_count"));
-            pixivData.setViewCount(resultSet.getInt("view_count"));
-            pixivData.setGrading(resultSet.getInt("grading"));
-            pixivData.setCrawlDate(resultSet.getDate("crawl_date").toString());
-            pixivData.setCreateDate(resultSet.getDate("create_date").toString());
-            pixivData.setUpdateDate(resultSet.getDate("update_date").toString());
-            pixivData.setTags(resultSet.getString("tags").split(";"));
+            artwork.setArtworkId(resultSet.getInt("pk_artwork_id"));
+            artwork.setArtworkTitle(resultSet.getString("artwork_title"));
+            artwork.setAuthorId(resultSet.getInt("author_id"));
+            artwork.setAuthorName(resultSet.getString("author_name"));
+            artwork.setDescription(resultSet.getString("description"));
+            artwork.setPageCount(resultSet.getInt("page_count"));
+            artwork.setBookmarkCount(resultSet.getInt("bookmark_count"));
+            artwork.setLikeCount(resultSet.getInt("like_count"));
+            artwork.setViewCount(resultSet.getInt("view_count"));
+            artwork.setGrading(resultSet.getInt("grading"));
+            artwork.setCrawlDate(resultSet.getDate("crawl_date").toString());
+            artwork.setCreateDate(resultSet.getDate("create_date").toString());
+            artwork.setUpdateDate(resultSet.getDate("update_date").toString());
+            artwork.setTags(resultSet.getString("tags").split(";"));
             Map<String, String> illustUrls = new HashMap<>(5);
             illustUrls.put("mini", resultSet.getString("illust_url_mini"));
             illustUrls.put("thumb", resultSet.getString("illust_url_thumb"));
             illustUrls.put("small", resultSet.getString("illust_url_small"));
             illustUrls.put("regular", resultSet.getString("illust_url_regular"));
             illustUrls.put("original", resultSet.getString("illust_url_original"));
-            pixivData.setIllustUrls(illustUrls);
+            artwork.setIllustUrls(illustUrls);
         }
 
-        return pixivData;
+        return artwork;
     }
 
     /**
      * Insert pixiv data
      *
-     * @param pixivData Pixiv data.
+     * @param artwork Pixiv data.
      * @throws SQLException ERROR.
      */
-    public void insertPixivData(@NotNull PixivData pixivData) throws SQLException {
+    public void insertArtwork(@NotNull Artwork artwork) throws SQLException {
         Connection connection = getConnection();
-        String sql = "select count(*) as result from pixiv_data." + getPixivDataTable(pixivData.getArtworkId()) + " where pk_artwork_id=?;";
+        String sql = "select count(*) as result from pixiv_data." + getArtworkTable(artwork.getArtworkId()) + " where pk_artwork_id=?;";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, pixivData.getArtworkId());
+        preparedStatement.setInt(1, artwork.getArtworkId());
         ResultSet resultSet = preparedStatement.executeQuery();
         if (resultSet.next() && resultSet.getInt(RESULT) != 0) {
-            sql = "DELETE FROM pixiv_data." + getPixivDataTable(pixivData.getArtworkId()) + " WHERE pk_artwork_id=?;";
+            sql = "DELETE FROM pixiv_data." + getArtworkTable(artwork.getArtworkId()) + " WHERE pk_artwork_id=?;";
             preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, pixivData.getArtworkId());
+            preparedStatement.setInt(1, artwork.getArtworkId());
             preparedStatement.executeUpdate();
         }
 
-        sql = "INSERT INTO pixiv_data." + getPixivDataTable(pixivData.getArtworkId()) + " (pk_artwork_id, artwork_title, author_id, author_name, description, tags, illust_url_mini, illust_url_thumb, illust_url_small, illust_url_regular, illust_url_original, page_count, bookmark_count, like_count, view_count, grading, update_date, create_date, crawl_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        sql = "INSERT INTO pixiv_data." + getArtworkTable(artwork.getArtworkId()) + " (pk_artwork_id, artwork_title, author_id, author_name, description, tags, illust_url_mini, illust_url_thumb, illust_url_small, illust_url_regular, illust_url_original, page_count, bookmark_count, like_count, view_count, grading, update_date, create_date, crawl_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, pixivData.getArtworkId());
-        preparedStatement.setString(2, pixivData.getArtworkTitle());
-        preparedStatement.setInt(3, pixivData.getAuthorId());
-        preparedStatement.setString(4, pixivData.getAuthorName());
-        preparedStatement.setString(5, pixivData.getDescription());
-        preparedStatement.setString(6, getTagsString(pixivData.getTags()));
-        preparedStatement.setString(7, pixivData.getIllustUrls().get("mini"));
-        preparedStatement.setString(8, pixivData.getIllustUrls().get("thumb"));
-        preparedStatement.setString(9, pixivData.getIllustUrls().get("small"));
-        preparedStatement.setString(10, pixivData.getIllustUrls().get("regular"));
-        preparedStatement.setString(11, pixivData.getIllustUrls().get("original"));
-        preparedStatement.setInt(12, pixivData.getPageCount());
-        preparedStatement.setInt(13, pixivData.getBookmarkCount());
-        preparedStatement.setInt(14, pixivData.getLikeCount());
-        preparedStatement.setInt(15, pixivData.getViewCount());
-        preparedStatement.setInt(16, pixivData.getGrading());
-        preparedStatement.setString(17, pixivData.getUpdateDate());
-        preparedStatement.setString(18, pixivData.getCreateDate());
-        preparedStatement.setString(19, pixivData.getCrawlDate());
+        preparedStatement.setInt(1, artwork.getArtworkId());
+        preparedStatement.setString(2, artwork.getArtworkTitle());
+        preparedStatement.setInt(3, artwork.getAuthorId());
+        preparedStatement.setString(4, artwork.getAuthorName());
+        preparedStatement.setString(5, artwork.getDescription());
+        preparedStatement.setString(6, getTagsString(artwork.getTags()));
+        preparedStatement.setString(7, artwork.getIllustUrls().get("mini"));
+        preparedStatement.setString(8, artwork.getIllustUrls().get("thumb"));
+        preparedStatement.setString(9, artwork.getIllustUrls().get("small"));
+        preparedStatement.setString(10, artwork.getIllustUrls().get("regular"));
+        preparedStatement.setString(11, artwork.getIllustUrls().get("original"));
+        preparedStatement.setInt(12, artwork.getPageCount());
+        preparedStatement.setInt(13, artwork.getBookmarkCount());
+        preparedStatement.setInt(14, artwork.getLikeCount());
+        preparedStatement.setInt(15, artwork.getViewCount());
+        preparedStatement.setInt(16, artwork.getGrading());
+        preparedStatement.setString(17, artwork.getUpdateDate());
+        preparedStatement.setString(18, artwork.getCreateDate());
+        preparedStatement.setString(19, artwork.getCrawlDate());
         preparedStatement.executeUpdate();
 
         preparedStatement.close();
     }
 
-    public void insertIndex(@NotNull IndexType indexType, PixivData pixivData) throws UnknownServiceTypeException, SQLException {
-        String indexTable = getIndexTable(indexType, pixivData);
+    public void insertIndex(@NotNull IndexType indexType, Artwork artwork) throws UnknownServiceTypeException, SQLException {
+        String indexTable = getIndexTable(indexType, artwork);
         Connection connection = getConnection();
 
         String sql = "select count(*) as result from pixiv_data." + indexTable + " where pk_artwork_id=?;";
         PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, pixivData.getArtworkId());
+        preparedStatement.setInt(1, artwork.getArtworkId());
         ResultSet resultSet = preparedStatement.executeQuery();
         if (resultSet.next() && resultSet.getInt(RESULT) != 0) {
             sql = "DELETE FROM pixiv_data." + indexTable + " WHERE pk_artwork_id=?;";
             preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, pixivData.getArtworkId());
+            preparedStatement.setInt(1, artwork.getArtworkId());
             preparedStatement.executeUpdate();
         }
 
 
         sql = "INSERT INTO pixiv_data." + indexTable + " (pk_artwork_id, " + indexType + ", tags, author_name) VALUES (?, ?, ?, ?);";
         preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setInt(1, pixivData.getArtworkId());
-        preparedStatement.setInt(2, pixivData.getBookmarkCount());
-        preparedStatement.setString(3, getTagsString(pixivData.getTags()));
-        preparedStatement.setString(4, pixivData.getAuthorName());
+        preparedStatement.setInt(1, artwork.getArtworkId());
+        preparedStatement.setInt(2, artwork.getBookmarkCount());
+        preparedStatement.setString(3, getTagsString(artwork.getTags()));
+        preparedStatement.setString(4, artwork.getAuthorName());
         preparedStatement.executeUpdate();
 
         preparedStatement.close();
@@ -197,11 +197,11 @@ public class PixivDataDao extends BaseDao {
      * @param artworkId The id of this artwork.
      * @return A table name.
      */
-    public String getPixivDataTable(@NotNull Integer artworkId) {
+    public String getArtworkTable(@NotNull Integer artworkId) {
         return "artwork_table_" + (int) Math.ceil(Double.valueOf(artworkId) / 5000000.0);
     }
 
-    public synchronized String getIndexTable(@NotNull IndexType indexType, @NotNull PixivData pixivData) throws UnknownServiceTypeException, SQLException {
+    public synchronized String getIndexTable(@NotNull IndexType indexType, @NotNull Artwork artwork) throws UnknownServiceTypeException, SQLException {
         Connection connection = getConnection();
         String sql;
         PreparedStatement preparedStatement;
@@ -211,15 +211,15 @@ public class PixivDataDao extends BaseDao {
         switch (indexType) {
             case bookmark_count -> {
                 indexDataArrayList = bookmarkCountIndexDataArrayList;
-                data = pixivData.getBookmarkCount();
+                data = artwork.getBookmarkCount();
             }
             case like_count -> {
                 indexDataArrayList = likeCountIndexDataArrayList;
-                data = pixivData.getLikeCount();
+                data = artwork.getLikeCount();
             }
             case view_count -> {
                 indexDataArrayList = viewCountIndexDataArrayList;
-                data = pixivData.getViewCount();
+                data = artwork.getViewCount();
             }
             default -> throw new UnknownServiceTypeException();
         }
@@ -234,22 +234,22 @@ public class PixivDataDao extends BaseDao {
                     preparedStatement = connection.prepareStatement(sql);
                     resultSet = preparedStatement.executeQuery();
 
-                    PixivData movedPixivData = new PixivData();
+                    Artwork movedArtwork = new Artwork();
                     if (resultSet.next()) {
-                        movedPixivData.setArtworkId(resultSet.getInt("pk_artwork_id"));
-                        movedPixivData.setBookmarkCount(resultSet.getInt(String.valueOf(indexType)));
-                        movedPixivData.setLikeCount(resultSet.getInt(String.valueOf(indexType)));
-                        movedPixivData.setViewCount(resultSet.getInt(String.valueOf(indexType)));
-                        movedPixivData.setTags(resultSet.getString("tags").split(";"));
-                        movedPixivData.setAuthorName(resultSet.getString("author_name"));
+                        movedArtwork.setArtworkId(resultSet.getInt("pk_artwork_id"));
+                        movedArtwork.setBookmarkCount(resultSet.getInt(String.valueOf(indexType)));
+                        movedArtwork.setLikeCount(resultSet.getInt(String.valueOf(indexType)));
+                        movedArtwork.setViewCount(resultSet.getInt(String.valueOf(indexType)));
+                        movedArtwork.setTags(resultSet.getString("tags").split(";"));
+                        movedArtwork.setAuthorName(resultSet.getString("author_name"));
                     }
                     updateIndexData(indexType, connection, indexData);
 
-                    insertIndex(indexType, movedPixivData);
+                    insertIndex(indexType, movedArtwork);
 
                     sql = "DELETE FROM pixiv_data." + indexData.getTableName() + " WHERE pk_artwork_id=?;";
                     preparedStatement = connection.prepareStatement(sql);
-                    preparedStatement.setInt(1, movedPixivData.getArtworkId());
+                    preparedStatement.setInt(1, movedArtwork.getArtworkId());
                     preparedStatement.executeUpdate();
                     return indexData.getTableName();
                 }

@@ -18,13 +18,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     // Mikoto
-    implementation 'net.mikoto.pixiv:pixiv-api:1.2.0'
+    implementation 'net.mikoto.pixiv:pixiv-api:1.3.5'
 
     // Others
-    implementation 'com.alibaba:fastjson:1.2.79'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.alibaba:fastjson:1.2.80'
     implementation 'commons-io:commons-io:2.11.0'
-    implementation 'mysql:mysql-connector-java:8.0.27'
-    implementation 'org.jetbrains:annotations:22.0.0'
+    implementation 'mysql:mysql-connector-java:8.0.28'
+    implementation 'org.jetbrains:annotations:23.0.0'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
