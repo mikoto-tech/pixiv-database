@@ -3,6 +3,7 @@ package net.mikoto.pixiv.database;
 import org.apache.commons.io.IOUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import java.io.File;
 import java.io.FileReader;
@@ -18,6 +19,7 @@ import static net.mikoto.pixiv.database.util.FileUtil.createFile;
  * @author mikoto2464
  */
 @SpringBootApplication
+@EntityScan("net.mikoto.pixiv.api.pojo")
 public class PixivDatabaseApplication {
 
     public static void main(String[] args) {

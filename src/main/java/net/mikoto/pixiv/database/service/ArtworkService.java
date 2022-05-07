@@ -1,7 +1,9 @@
 package net.mikoto.pixiv.database.service;
 
 
-import net.mikoto.pixiv.database.pojo.Artwork;
+import net.mikoto.pixiv.api.pojo.Artwork;
+
+import java.util.List;
 
 /**
  * @author mikoto
@@ -22,4 +24,22 @@ public interface ArtworkService {
      * @param artwork An artwork object.
      */
     void insertArtwork(Artwork artwork);
+
+    /**
+     * Get artworks
+     *
+     * @param key     Key.
+     * @param orderBy Order by.
+     * @param order   Order.
+     * @return Artworks.
+     */
+    List<Artwork> getArtworks(String key, OrderBy orderBy, Order order);
+
+    /**
+     * Get series artwork.
+     *
+     * @param seriesId Series id.
+     * @return The artworks.
+     */
+    List<Artwork> getSeries(int seriesId);
 }
