@@ -3,6 +3,7 @@ package net.mikoto.pixiv.database.service;
 
 import net.mikoto.pixiv.api.pojo.Artwork;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -26,20 +27,13 @@ public interface ArtworkService {
     void insertArtwork(Artwork artwork);
 
     /**
-     * Get artworks
+     * Get artworks.
      *
-     * @param key     Key.
-     * @param orderBy Order by.
-     * @param order   Order.
+     * @param findBy     Find by.
+     * @param orderBy    Order by.
+     * @param order      Order.
+     * @param credential The credential.
      * @return Artworks.
      */
-    List<Artwork> getArtworks(String key, OrderBy orderBy, Order order);
-
-    /**
-     * Get series artwork.
-     *
-     * @param seriesId Series id.
-     * @return The artworks.
-     */
-    List<Artwork> getSeries(int seriesId);
+    List<?> getArtworks(FindBy findBy, OrderBy orderBy, Order order, Object credential) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;
 }

@@ -30,6 +30,14 @@ public interface ArtworkRepository extends JpaRepository<Artwork, Integer> {
     List<Artwork> findArtworksBySeriesIdOrderBySeriesOrderDesc(int seriesId);
 
     /**
+     * Get artworks by series id
+     *
+     * @param seriesId The series id.
+     * @return Artworks.
+     */
+    List<Artwork> findArtworksBySeriesIdOrderBySeriesOrderAsc(int seriesId);
+
+    /**
      * Get artworks.
      *
      * @param tags  The tags need to find.

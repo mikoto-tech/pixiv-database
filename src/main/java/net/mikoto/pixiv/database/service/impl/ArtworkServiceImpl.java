@@ -3,6 +3,7 @@ package net.mikoto.pixiv.database.service.impl;
 import net.mikoto.pixiv.api.pojo.Artwork;
 import net.mikoto.pixiv.database.dao.ArtworkRepository;
 import net.mikoto.pixiv.database.service.ArtworkService;
+import net.mikoto.pixiv.database.service.FindBy;
 import net.mikoto.pixiv.database.service.Order;
 import net.mikoto.pixiv.database.service.OrderBy;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,67 +33,42 @@ public class ArtworkServiceImpl implements ArtworkService {
     /**
      * Get artworks
      *
-     * @param key     Key.
-     * @param orderBy Order by.
-     * @param order   Order.
      * @return Artworks.
      */
     @Override
-    public List<Artwork> getArtworks(String key, OrderBy orderBy, Order order) {
-        if (key == null) {
-            key = ";";
+    public List<?> getArtworks(FindBy findBy, OrderBy orderBy, Order order, Object credential) throws InvocationTargetException, IllegalAccessException {
+        if (credential == null && findBy == FindBy.Key) {
+            credential = ";";
         }
 
-        if (order.equals(Order.DESC)) {
-            switch (orderBy) {
-                case BOOKMARK_COUNT -> {
-                    return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContainsOrderByBookmarkCountDesc(key, key);
-                }
-                case ARTWORK_ID -> {
-                    return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContainsOrderByArtworkIdDesc(key, key);
-                }
-                case LIKE_COUNT -> {
-                    return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContainsOrderByLikeCountDesc(key, key);
-                }
-                case VIEW_COUNT -> {
-                    return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContainsOrderByViewCountDesc(key, key);
-                }
-                default -> {
-                    throw new UnsupportedOperationException();
-                }
-            }
-        } else if (order.equals(Order.ASC)) {
-            switch (orderBy) {
-                case BOOKMARK_COUNT -> {
-                    return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContainsOrderByBookmarkCountAsc(key, key);
-                }
-                case ARTWORK_ID -> {
-                    return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContainsOrderByArtworkIdAsc(key, key);
-                }
-                case LIKE_COUNT -> {
-                    return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContainsOrderByLikeCountAsc(key, key);
-                }
-                case VIEW_COUNT -> {
-                    return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContainsOrderByViewCountAsc(key, key);
-                }
-                default -> {
-                    throw new UnsupportedOperationException();
-                }
-            }
+        String methodName = "findArtworksBy";
+
+        if (findBy == FindBy.Key) {
+            methodName += "TagsContainsOrArtworkTitleContainsOrderBy";
         } else {
-            throw new UnsupportedOperationException();
+            methodName += findBy + "OrderBy";
         }
-    }
 
-    /**
-     * Get series artwork.
-     *
-     * @param seriesId Series id.
-     * @return The artworks.
-     */
-    @Override
-    public List<Artwork> getSeries(int seriesId) {
-        return artworkRepository.findArtworksBySeriesIdOrderBySeriesOrderDesc(seriesId);
+        methodName += orderBy.toString() + order.toString();
+
+        Method method = null;
+        for (Method aMethod :
+                artworkRepository.getClass().getMethods()) {
+            if (aMethod.getName().equals(methodName)) {
+                method = aMethod;
+            }
+        }
+
+        if (method == null) {
+            throw new NullPointerException();
+        }
+
+        List<Object> paramList = new ArrayList<>();
+        for (int i = 0; i < method.getParameterCount(); i++) {
+            paramList.add(credential);
+        }
+
+        return (List<?>) method.invoke(artworkRepository, paramList.toArray());
     }
 
     /**

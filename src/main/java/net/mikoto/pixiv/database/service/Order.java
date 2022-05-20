@@ -8,10 +8,10 @@ public enum Order {
     /**
      * 倒序 从大到小
      */
-    DESC,
+    Desc,
 
     /**
      * 正序 从小到大
      */
-    ASC
+    Asc
 }

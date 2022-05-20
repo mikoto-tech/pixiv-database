@@ -8,20 +8,21 @@ public enum OrderBy {
     /**
      * By time
      */
-    ARTWORK_ID,
+    ArtworkId,
 
     /**
      * By bookmark count
      */
-    BOOKMARK_COUNT,
+    BookmarkCount,
 
     /**
      * By like count
      */
-    LIKE_COUNT,
+    LikeCount,
 
     /**
      * By view count
      */
-    VIEW_COUNT
+    ViewCount,
+    SeriesOrder
 }
