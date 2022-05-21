@@ -1,20 +1,16 @@
 package net.mikoto.pixiv.database.service.impl;
 
-import net.mikoto.pixiv.api.pojo.Artwork;
+import net.mikoto.pixiv.api.model.Artwork;
 import net.mikoto.pixiv.database.dao.ArtworkRepository;
 import net.mikoto.pixiv.database.service.ArtworkService;
-import net.mikoto.pixiv.database.service.FindBy;
-import net.mikoto.pixiv.database.service.Order;
-import net.mikoto.pixiv.database.service.OrderBy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mikoto
@@ -36,39 +32,20 @@ public class ArtworkServiceImpl implements ArtworkService {
      * @return Artworks.
      */
     @Override
-    public List<?> getArtworks(FindBy findBy, OrderBy orderBy, Order order, Object credential) throws InvocationTargetException, IllegalAccessException {
-        if (credential == null && findBy == FindBy.Key) {
-            credential = ";";
-        }
+    public Page<Artwork> getArtworksByKey(String key, Pageable pageable) throws InvocationTargetException, IllegalAccessException {
+        return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContains(key, key, pageable);
+    }
 
-        String methodName = "findArtworksBy";
-
-        if (findBy == FindBy.Key) {
-            methodName += "TagsContainsOrArtworkTitleContainsOrderBy";
-        } else {
-            methodName += findBy + "OrderBy";
-        }
-
-        methodName += orderBy.toString() + order.toString();
-
-        Method method = null;
-        for (Method aMethod :
-                artworkRepository.getClass().getMethods()) {
-            if (aMethod.getName().equals(methodName)) {
-                method = aMethod;
-            }
-        }
-
-        if (method == null) {
-            throw new NullPointerException();
-        }
-
-        List<Object> paramList = new ArrayList<>();
-        for (int i = 0; i < method.getParameterCount(); i++) {
-            paramList.add(credential);
-        }
-
-        return (List<?>) method.invoke(artworkRepository, paramList.toArray());
+    /**
+     * Get artworks.
+     *
+     * @param seriesId The credential.
+     * @param pageable Page.
+     * @return Artworks.
+     */
+    @Override
+    public Page<Artwork> getArtworksBySeriesId(Integer seriesId, Pageable pageable) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        return artworkRepository.findArtworksBySeriesId(seriesId, pageable);
     }
 
     /**

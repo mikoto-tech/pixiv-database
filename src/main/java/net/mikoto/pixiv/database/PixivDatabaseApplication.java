@@ -23,7 +23,7 @@ import static net.mikoto.pixiv.database.constant.Constant.*;
  * @author mikoto2464
  */
 @SpringBootApplication
-@EntityScan("net.mikoto.pixiv.api.pojo")
+@EntityScan("net.mikoto.pixiv.api.model")
 public class PixivDatabaseApplication {
     private static final String AUTO = "auto";
 

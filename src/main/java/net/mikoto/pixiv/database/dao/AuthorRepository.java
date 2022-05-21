@@ -1,6 +1,6 @@
 package net.mikoto.pixiv.database.dao;
 
-import net.mikoto.pixiv.api.pojo.Author;
+import net.mikoto.pixiv.api.model.Author;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,4 +10,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("authorRepository")
 public interface AuthorRepository extends JpaRepository<Author, Integer> {
+    /**
+     * Get author by author id.
+     *
+     * @param authorId The author id.
+     * @return The author.
+     */
+    Author getAuthorByAuthorId(Integer authorId);
 }

@@ -1,6 +1,6 @@
 package net.mikoto.pixiv.database.dao;
 
-import net.mikoto.pixiv.api.pojo.User;
+import net.mikoto.pixiv.api.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,4 +10,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("userRepository")
 public interface UserRepository extends JpaRepository<User, Integer> {
+    /**
+     * Get user by user id.
+     *
+     * @param userId The user id.
+     * @return The user.
+     */
+    User getUserByUserId(Integer userId);
 }

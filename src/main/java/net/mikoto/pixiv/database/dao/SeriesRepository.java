@@ -1,6 +1,6 @@
 package net.mikoto.pixiv.database.dao;
 
-import net.mikoto.pixiv.api.pojo.Series;
+import net.mikoto.pixiv.api.model.Series;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,4 +10,11 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("seriesRepository")
 public interface SeriesRepository extends JpaRepository<Series, Integer> {
+    /**
+     * Get series by series id.
+     *
+     * @param seriesId The series id.
+     * @return The series.
+     */
+    Series getSeriesBySeriesId(Integer seriesId);
 }

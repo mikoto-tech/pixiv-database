@@ -1,10 +1,11 @@
 package net.mikoto.pixiv.database.service;
 
 
-import net.mikoto.pixiv.api.pojo.Artwork;
+import net.mikoto.pixiv.api.model.Artwork;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 /**
  * @author mikoto
@@ -29,11 +30,18 @@ public interface ArtworkService {
     /**
      * Get artworks.
      *
-     * @param findBy     Find by.
-     * @param orderBy    Order by.
-     * @param order      Order.
-     * @param credential The credential.
+     * @param key      The credential.
+     * @param pageable Page.
      * @return Artworks.
      */
-    List<?> getArtworks(FindBy findBy, OrderBy orderBy, Order order, Object credential) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;
+    Page<Artwork> getArtworksByKey(String key, Pageable pageable) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;
+
+    /**
+     * Get artworks.
+     *
+     * @param seriesId The credential.
+     * @param pageable Page.
+     * @return Artworks.
+     */
+    Page<Artwork> getArtworksBySeriesId(Integer seriesId, Pageable pageable) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException;
 }

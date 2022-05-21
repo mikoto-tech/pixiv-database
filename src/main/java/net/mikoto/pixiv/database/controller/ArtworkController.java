@@ -2,14 +2,15 @@ package net.mikoto.pixiv.database.controller;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import net.mikoto.pixiv.api.pojo.Artwork;
+import net.mikoto.pixiv.api.model.Artwork;
 import net.mikoto.pixiv.database.service.ArtworkService;
-import net.mikoto.pixiv.database.service.FindBy;
-import net.mikoto.pixiv.database.service.Order;
-import net.mikoto.pixiv.database.service.OrderBy;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -23,8 +24,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.List;
 
+import static net.mikoto.pixiv.api.http.HttpApi.*;
 import static net.mikoto.pixiv.api.util.RsaUtil.getPrivateKey;
 import static net.mikoto.pixiv.api.util.RsaUtil.sign;
 import static net.mikoto.pixiv.api.util.Sha256Util.getSha256;
@@ -36,7 +37,7 @@ import static net.mikoto.pixiv.database.constant.Constant.*;
  */
 @RestController
 @RequestMapping(
-        "/api/artwork"
+        DATABASE_ARTWORK
 )
 public class ArtworkController {
     @Qualifier("artworkService")
@@ -50,7 +51,7 @@ public class ArtworkController {
     }
 
     @RequestMapping(
-            value = "/insertArtworks",
+            value = DATABASE_ARTWORK_INSERT_ARTWORKS,
             method = RequestMethod.POST,
             produces = "application/json;charset=UTF-8"
     )
@@ -59,7 +60,7 @@ public class ArtworkController {
     }
 
     @RequestMapping(
-            "/getArtwork"
+            DATABASE_ARTWORK_GET_ARTWORK
     )
     public JSONObject getArtwork(@NotNull HttpServletResponse response, @NotNull String key, Integer artworkId) throws NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, InvalidKeyException {
         response.setContentType("application/json;charset=UTF-8");
@@ -87,29 +88,35 @@ public class ArtworkController {
     }
 
     @RequestMapping(
-            "/getArtworks"
+            DATABASE_ARTWORK_GET_ARTWORKS
     )
-    public JSONObject getArtworks(@NotNull HttpServletResponse response, @NotNull String key, String credential, FindBy findBy, OrderBy orderBy, Order order) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public JSONObject getArtworks(@NotNull HttpServletResponse response, @NotNull String key, String credential, Sort.Direction order, String properties, int pageCount) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         response.setContentType("application/json;charset=UTF-8");
         if (key.equals(MAIN_PROPERTIES.getProperty(ADMIN_KEY)) || key.equals(MAIN_PROPERTIES.getProperty(ACCESS_KEY))) {
+
+            Page<Artwork> artworkList = null;
+
             JSONObject jsonObject = new JSONObject();
 
-            List<?> artworkList = null;
-
-            if (findBy == FindBy.SeriesId) {
-                artworkList = artworkService.getArtworks(findBy, orderBy, order, Integer.parseInt(credential));
-            } else if (findBy == FindBy.Key) {
-                artworkList = artworkService.getArtworks(findBy, orderBy, order, credential);
+            try {
+                artworkList = artworkService.getArtworksByKey(
+                        credential,
+                        PageRequest.of(pageCount, 10, order, properties.split(";"))
+                );
+            } catch (PropertyReferenceException e) {
+                jsonObject.fluentPut("success", false);
+                jsonObject.fluentPut("body", null);
+                return jsonObject;
             }
 
-            if (artworkList == null) {
+            if (artworkList == null || artworkList.isEmpty()) {
                 jsonObject.fluentPut("success", false);
                 jsonObject.fluentPut("body", null);
                 return jsonObject;
             }
 
             JSONArray jsonArray = new JSONArray();
-            for (Object artwork :
+            for (Artwork artwork :
                     artworkList) {
                 jsonArray.fluentAdd(artwork);
             }
