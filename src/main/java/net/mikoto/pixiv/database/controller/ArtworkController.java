@@ -1,5 +1,6 @@
 package net.mikoto.pixiv.database.controller;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import net.mikoto.pixiv.api.model.Artwork;
@@ -52,82 +53,73 @@ public class ArtworkController {
 
     @RequestMapping(
             value = DATABASE_ARTWORK_INSERT_ARTWORKS,
-            method = RequestMethod.POST,
-            produces = "application/json;charset=UTF-8"
+            method = RequestMethod.POST
     )
     public void insertArtworks(@RequestBody @NotNull String data) {
-        System.out.println(new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8));
+        JSONObject jsonObject = JSON.parseObject(new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8));
+        if (jsonObject.getString(KEY).equals(MAIN_PROPERTIES.getProperty(ADMIN_KEY)) || jsonObject.getString(KEY).equals(MAIN_PROPERTIES.getProperty(ACCESS_KEY))) {
+            for (Object artworkJson :
+                    jsonObject.getJSONArray("body")) {
+                Artwork artwork = ((JSONObject) artworkJson).toJavaObject(Artwork.class);
+                artworkService.insertArtwork(artwork);
+            }
+        }
     }
 
     @RequestMapping(
             DATABASE_ARTWORK_GET_ARTWORK
     )
-    public JSONObject getArtwork(@NotNull HttpServletResponse response, @NotNull String key, Integer artworkId) throws NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, InvalidKeyException {
+    public JSONObject getArtwork(@NotNull HttpServletResponse response, Integer artworkId) throws NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, InvalidKeyException {
         response.setContentType("application/json;charset=UTF-8");
-        if (key.equals(MAIN_PROPERTIES.getProperty(ADMIN_KEY)) || key.equals(MAIN_PROPERTIES.getProperty(ACCESS_KEY))) {
-            JSONObject jsonObject = new JSONObject();
-            Artwork artwork = artworkService.getArtworkByArtworkId(artworkId);
-            if (artwork != null) {
-                jsonObject.fluentPut("body", artwork);
-                jsonObject.fluentPut("sign", sign(getSha256(jsonObject.getJSONObject("body").toJSONString()), getPrivateKey(MAIN_PROPERTIES.getProperty(RSA_PRIVATE_KEY))));
-                jsonObject.fluentPut("success", true);
-                jsonObject.fluentPut("message", "");
-            } else {
-                jsonObject.fluentPut("body", null);
-                jsonObject.fluentPut("sign", null);
-                jsonObject.fluentPut("success", false);
-                jsonObject.fluentPut("message", "Null artwork");
-            }
-            return jsonObject;
+        JSONObject jsonObject = new JSONObject();
+        Artwork artwork = artworkService.getArtworkByArtworkId(artworkId);
+        if (artwork != null) {
+            jsonObject.fluentPut("body", artwork);
+            jsonObject.fluentPut("sign", sign(getSha256(jsonObject.getJSONObject("body").toJSONString()), getPrivateKey(MAIN_PROPERTIES.getProperty(RSA_PRIVATE_KEY))));
+            jsonObject.fluentPut("success", true);
+            jsonObject.fluentPut("message", "");
         } else {
-            JSONObject jsonObject = new JSONObject();
+            jsonObject.fluentPut("body", null);
+            jsonObject.fluentPut("sign", null);
             jsonObject.fluentPut("success", false);
-            jsonObject.fluentPut("msg", "Wrong key!");
-            return jsonObject;
+            jsonObject.fluentPut("message", "Null artwork");
         }
+        return jsonObject;
     }
 
     @RequestMapping(
             DATABASE_ARTWORK_GET_ARTWORKS
     )
-    public JSONObject getArtworks(@NotNull HttpServletResponse response, @NotNull String key, String credential, Sort.Direction order, String properties, int pageCount) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+    public JSONObject getArtworks(@NotNull HttpServletResponse response, String credential, Sort.Direction order, @NotNull String properties, int pageCount) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         response.setContentType("application/json;charset=UTF-8");
-        if (key.equals(MAIN_PROPERTIES.getProperty(ADMIN_KEY)) || key.equals(MAIN_PROPERTIES.getProperty(ACCESS_KEY))) {
+        Page<Artwork> artworkList;
 
-            Page<Artwork> artworkList = null;
+        JSONObject jsonObject = new JSONObject();
 
-            JSONObject jsonObject = new JSONObject();
-
-            try {
-                artworkList = artworkService.getArtworksByKey(
-                        credential,
-                        PageRequest.of(pageCount, 10, order, properties.split(";"))
-                );
-            } catch (PropertyReferenceException e) {
-                jsonObject.fluentPut("success", false);
-                jsonObject.fluentPut("body", null);
-                return jsonObject;
-            }
-
-            if (artworkList == null || artworkList.isEmpty()) {
-                jsonObject.fluentPut("success", false);
-                jsonObject.fluentPut("body", null);
-                return jsonObject;
-            }
-
-            JSONArray jsonArray = new JSONArray();
-            for (Artwork artwork :
-                    artworkList) {
-                jsonArray.fluentAdd(artwork);
-            }
-            jsonObject.fluentPut("success", true);
-            jsonObject.fluentPut("body", jsonArray);
-            return jsonObject;
-        } else {
-            JSONObject jsonObject = new JSONObject();
+        try {
+            artworkList = artworkService.getArtworksByKey(
+                    credential,
+                    PageRequest.of(pageCount, 10, order, properties.split(";"))
+            );
+        } catch (PropertyReferenceException e) {
             jsonObject.fluentPut("success", false);
-            jsonObject.fluentPut("msg", "Wrong key!");
+            jsonObject.fluentPut("body", null);
             return jsonObject;
         }
+
+        if (artworkList == null || artworkList.isEmpty()) {
+            jsonObject.fluentPut("success", false);
+            jsonObject.fluentPut("body", null);
+            return jsonObject;
+        }
+
+        JSONArray jsonArray = new JSONArray();
+        for (Artwork artwork :
+                artworkList) {
+            jsonArray.fluentAdd(artwork);
+        }
+        jsonObject.fluentPut("success", true);
+        jsonObject.fluentPut("body", jsonArray);
+        return jsonObject;
     }
 }
