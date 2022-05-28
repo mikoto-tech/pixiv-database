@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
     // Mikoto
-    implementation 'net.mikoto.pixiv:pixiv-api:1.4.2-snapshot-3'
+    implementation 'net.mikoto.pixiv:pixiv-api:1.4.2-snapshot-4'
 
     // Others
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
