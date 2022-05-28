@@ -104,24 +104,26 @@ public class ArtworkController implements InsertArtworks, GetArtwork, GetArtwork
                     credential,
                     PageRequest.of(pageCount, 10, order, properties.split(";"))
             );
+
+            if (artworkList == null || artworkList.isEmpty()) {
+                jsonObject.fluentPut("success", false);
+                return jsonObject;
+            }
+
+            JSONArray jsonArray = new JSONArray();
+            for (Artwork artwork :
+                    artworkList) {
+                jsonArray.fluentAdd(artwork);
+            }
+
+            jsonObject.fluentPut("sign", sign(getSha256(jsonArray.toJSONString()), getPrivateKey(MAIN_PROPERTIES.getProperty(RSA_PRIVATE_KEY))));
+            jsonObject.fluentPut("success", true);
+            jsonObject.fluentPut("body", jsonArray);
+            return jsonObject;
         } catch (Exception e) {
             jsonObject.fluentPut("success", false);
             jsonObject.fluentPut("message", e.getMessage());
             return jsonObject;
         }
-
-        if (artworkList == null || artworkList.isEmpty()) {
-            jsonObject.fluentPut("success", false);
-            return jsonObject;
-        }
-
-        JSONArray jsonArray = new JSONArray();
-        for (Artwork artwork :
-                artworkList) {
-            jsonArray.fluentAdd(artwork);
-        }
-        jsonObject.fluentPut("success", true);
-        jsonObject.fluentPut("body", jsonArray);
-        return jsonObject;
     }
 }
