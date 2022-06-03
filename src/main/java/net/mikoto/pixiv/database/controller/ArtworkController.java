@@ -24,9 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import static net.mikoto.pixiv.api.http.HttpApi.*;
-import static net.mikoto.pixiv.api.util.RsaUtil.getPrivateKey;
-import static net.mikoto.pixiv.api.util.RsaUtil.sign;
-import static net.mikoto.pixiv.api.util.Sha256Util.getSha256;
 import static net.mikoto.pixiv.database.constant.Constant.*;
 
 /**
@@ -75,7 +72,6 @@ public class ArtworkController implements InsertArtworks, GetArtwork, GetArtwork
         if (artwork != null) {
             try {
                 jsonObject.fluentPut("body", artwork);
-                jsonObject.fluentPut("sign", sign(getSha256(jsonObject.getJSONObject("body").toJSONString()), getPrivateKey(MAIN_PROPERTIES.getProperty(RSA_PRIVATE_KEY))));
                 jsonObject.fluentPut("success", true);
             } catch (Exception e) {
                 jsonObject.fluentPut("success", false);
@@ -115,8 +111,6 @@ public class ArtworkController implements InsertArtworks, GetArtwork, GetArtwork
                     artworkList) {
                 jsonArray.fluentAdd(artwork);
             }
-
-            jsonObject.fluentPut("sign", sign(getSha256(jsonArray.toJSONString()), getPrivateKey(MAIN_PROPERTIES.getProperty(RSA_PRIVATE_KEY))));
             jsonObject.fluentPut("success", true);
             jsonObject.fluentPut("body", jsonArray);
             return jsonObject;
