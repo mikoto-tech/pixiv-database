@@ -10,8 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * @author mikoto
  * @date 2022/4/17 20:37
@@ -32,7 +30,7 @@ public class ArtworkServiceImpl implements ArtworkService {
      * @return Artworks.
      */
     @Override
-    public Page<Artwork> getArtworksByKey(String key, Pageable pageable) throws InvocationTargetException, IllegalAccessException {
+    public Page<Artwork> getArtworksByKey(String key, Pageable pageable) {
         return artworkRepository.findArtworksByTagsContainsOrArtworkTitleContains(key, key, pageable);
     }
 
@@ -44,7 +42,7 @@ public class ArtworkServiceImpl implements ArtworkService {
      * @return Artworks.
      */
     @Override
-    public Page<Artwork> getArtworksBySeriesId(Integer seriesId, Pageable pageable) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public Page<Artwork> getArtworksBySeriesId(Integer seriesId, Pageable pageable) {
         return artworkRepository.findArtworksBySeriesId(seriesId, pageable);
     }
 

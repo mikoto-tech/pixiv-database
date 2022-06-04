@@ -11,6 +11,7 @@ import net.mikoto.pixiv.database.service.ArtworkService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -24,7 +25,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import static net.mikoto.pixiv.api.http.HttpApi.*;
-import static net.mikoto.pixiv.database.constant.Constant.*;
 
 /**
  * @author mikoto
@@ -35,10 +35,20 @@ import static net.mikoto.pixiv.database.constant.Constant.*;
         DATABASE_ARTWORK
 )
 public class ArtworkController implements InsertArtworks, GetArtwork, GetArtworks {
+    /**
+     * Constants
+     */
+    private static final String KEY = "key";
+    /**
+     * Instances
+     */
     @Qualifier("artworkService")
     private final ArtworkService artworkService;
-
-    private static final String KEY = "key";
+    /**
+     * Variables
+     */
+    @Value("${mikoto.pixiv.database.admin.key}")
+    private String adminKey;
 
     @Autowired
     public ArtworkController(ArtworkService artworkService) {
@@ -52,7 +62,7 @@ public class ArtworkController implements InsertArtworks, GetArtwork, GetArtwork
     @Override
     public void insertArtworksHttpApi(@RequestBody @NotNull String data) {
         JSONObject jsonObject = JSON.parseObject(new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8));
-        if (jsonObject.getString(KEY).equals(MAIN_PROPERTIES.getProperty(ADMIN_KEY)) || jsonObject.getString(KEY).equals(MAIN_PROPERTIES.getProperty(ACCESS_KEY))) {
+        if (jsonObject.getString(KEY).equals(adminKey)) {
             for (Object artworkJson :
                     jsonObject.getJSONArray("body")) {
                 Artwork artwork = ((JSONObject) artworkJson).toJavaObject(Artwork.class);
