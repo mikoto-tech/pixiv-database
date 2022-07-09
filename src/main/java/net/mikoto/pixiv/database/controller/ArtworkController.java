@@ -3,11 +3,8 @@ package net.mikoto.pixiv.database.controller;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import net.mikoto.pixiv.api.http.database.artwork.GetArtwork;
-import net.mikoto.pixiv.api.http.database.artwork.GetArtworks;
-import net.mikoto.pixiv.api.http.database.artwork.InsertArtworks;
-import net.mikoto.pixiv.api.model.Artwork;
-import net.mikoto.pixiv.database.service.ArtworkService;
+import net.mikoto.pixiv.core.model.Artwork;
+import net.mikoto.pixiv.database.dao.ArtworkRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import static net.mikoto.pixiv.api.http.HttpApi.*;
+import static net.mikoto.pixiv.core.constant.HttpApi.*;
 
 /**
  * @author mikoto
@@ -34,7 +31,7 @@ import static net.mikoto.pixiv.api.http.HttpApi.*;
 @RequestMapping(
         DATABASE_ARTWORK
 )
-public class ArtworkController implements InsertArtworks, GetArtwork, GetArtworks {
+public class ArtworkController {
     /**
      * Constants
      */
@@ -42,8 +39,8 @@ public class ArtworkController implements InsertArtworks, GetArtwork, GetArtwork
     /**
      * Instances
      */
-    @Qualifier("artworkService")
-    private final ArtworkService artworkService;
+    @Qualifier("artworkRepository")
+    private final ArtworkRepository artworkRepository;
     /**
      * Variables
      */
@@ -51,22 +48,22 @@ public class ArtworkController implements InsertArtworks, GetArtwork, GetArtwork
     private String adminKey;
 
     @Autowired
-    public ArtworkController(ArtworkService artworkService) {
-        this.artworkService = artworkService;
+    public ArtworkController(ArtworkRepository artworkRepository) {
+        this.artworkRepository = artworkRepository;
     }
 
     @RequestMapping(
             value = DATABASE_ARTWORK_INSERT_ARTWORKS,
             method = RequestMethod.POST
     )
-    @Override
     public void insertArtworksHttpApi(@RequestBody @NotNull String data) {
         JSONObject jsonObject = JSON.parseObject(new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8));
         if (jsonObject.getString(KEY).equals(adminKey)) {
+            JSONArray jsonArray = jsonObject.getJSONArray("body");
             for (Object artworkJson :
-                    jsonObject.getJSONArray("body")) {
-                Artwork artwork = ((JSONObject) artworkJson).toJavaObject(Artwork.class);
-                artworkService.insertArtwork(artwork);
+                    jsonArray) {
+                Artwork artwork = ((JSONObject) artworkJson).to(Artwork.class);
+                artworkRepository.save(artwork);
             }
         }
     }
@@ -74,11 +71,10 @@ public class ArtworkController implements InsertArtworks, GetArtwork, GetArtwork
     @RequestMapping(
             DATABASE_ARTWORK_GET_ARTWORK
     )
-    @Override
     public JSONObject getArtworkHttpApi(@NotNull HttpServletResponse response, int artworkId) {
         response.setContentType("application/json;charset=UTF-8");
         JSONObject jsonObject = new JSONObject();
-        Artwork artwork = artworkService.getArtworkByArtworkId(artworkId);
+        Artwork artwork = artworkRepository.getArtworkByArtworkId(artworkId);
         if (artwork != null) {
             try {
                 jsonObject.fluentPut("body", artwork);
@@ -98,18 +94,14 @@ public class ArtworkController implements InsertArtworks, GetArtwork, GetArtwork
             DATABASE_ARTWORK_GET_ARTWORKS
 
     )
-    @Override
-    public JSONObject getArtworksHttpApi(@NotNull HttpServletResponse response, String credential, Sort.Direction order, @NotNull String properties, int pageCount) {
+    public JSONObject getArtworksHttpApi(@NotNull HttpServletResponse response, String credential, Sort.Direction order, @NotNull String properties, int pageCount, int grading) {
         response.setContentType("application/json;charset=UTF-8");
         Page<Artwork> artworkList;
 
         JSONObject jsonObject = new JSONObject();
 
         try {
-            artworkList = artworkService.getArtworksByKey(
-                    credential,
-                    PageRequest.of(pageCount, 10, order, properties.split(";"))
-            );
+            artworkList = artworkRepository.findArtworks(grading, credential, credential, credential, PageRequest.of(pageCount, 12, order, properties.split(";")));
 
             if (artworkList == null || artworkList.isEmpty()) {
                 jsonObject.fluentPut("success", false);

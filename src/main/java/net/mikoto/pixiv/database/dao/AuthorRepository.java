@@ -1,6 +1,6 @@
 package net.mikoto.pixiv.database.dao;
 
-import net.mikoto.pixiv.api.model.Author;
+import net.mikoto.pixiv.core.model.Author;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

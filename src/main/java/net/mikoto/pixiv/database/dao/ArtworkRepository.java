@@ -1,9 +1,11 @@
 package net.mikoto.pixiv.database.dao;
 
-import net.mikoto.pixiv.api.model.Artwork;
+import net.mikoto.pixiv.core.model.Artwork;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 
@@ -36,7 +38,12 @@ public interface ArtworkRepository extends JpaRepository<Artwork, Integer> {
      * @param tags     The tags need to find.
      * @param title    The title need to find.
      * @param pageable Page.
+     * @param grading  Grading.
      * @return Artworks.
      */
-    Page<Artwork> findArtworksByTagsContainsOrArtworkTitleContains(String tags, String title, Pageable pageable);
+    @Query(
+            value = "SELECT * from pixiv.artwork WHERE grading <= :grading and (tags like :tags or artwork_title like :title or author_name like :authorName)",
+            nativeQuery = true
+    )
+    Page<Artwork> findArtworks(@Param("grading") int grading, @Param("tags") String tags, @Param("title") String title, @Param("authorName") String authorName, Pageable pageable);
 }
