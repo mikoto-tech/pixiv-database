@@ -3,12 +3,12 @@ package net.mikoto.pixiv.database.controller;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import net.mikoto.pixiv.core.connector.CentralConnector;
 import net.mikoto.pixiv.core.model.Artwork;
 import net.mikoto.pixiv.database.dao.ArtworkRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,8 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 
 import static net.mikoto.pixiv.core.constant.HttpApi.*;
+import static net.mikoto.pixiv.core.constant.Scope.INSERT_ARTWORKS;
 
 /**
  * @author mikoto
@@ -33,35 +35,30 @@ import static net.mikoto.pixiv.core.constant.HttpApi.*;
 )
 public class ArtworkController {
     /**
-     * Constants
-     */
-    private static final String KEY = "key";
-    /**
      * Instances
      */
     @Qualifier("artworkRepository")
     private final ArtworkRepository artworkRepository;
-    /**
-     * Variables
-     */
-    @Value("${mikoto.pixiv.database.admin.key}")
-    private String adminKey;
+    @Qualifier("centralConnector")
+    private final CentralConnector centralConnector;
 
     @Autowired
-    public ArtworkController(ArtworkRepository artworkRepository) {
+    public ArtworkController(ArtworkRepository artworkRepository, CentralConnector centralConnector) {
         this.artworkRepository = artworkRepository;
+        this.centralConnector = centralConnector;
     }
 
     @RequestMapping(
             value = DATABASE_ARTWORK_INSERT_ARTWORKS,
             method = RequestMethod.POST
     )
-    public void insertArtworksHttpApi(@RequestBody @NotNull String data) {
-        JSONObject jsonObject = JSON.parseObject(new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8));
-        if (jsonObject.getString(KEY).equals(adminKey)) {
-            JSONArray jsonArray = jsonObject.getJSONArray("body");
+    public void insertArtworksHttpApi(@RequestBody @NotNull String data, String token) {
+        JSONObject inputJsonObject = JSON.parseObject(new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8));
+        JSONArray inputArtworks = inputJsonObject.getJSONArray("body");
+        List<String> checkTokenResult = centralConnector.checkToken(token, INSERT_ARTWORKS);
+        if (!checkTokenResult.contains(INSERT_ARTWORKS)) {
             for (Object artworkJson :
-                    jsonArray) {
+                    inputArtworks) {
                 Artwork artwork = ((JSONObject) artworkJson).to(Artwork.class);
                 artworkRepository.save(artwork);
             }
