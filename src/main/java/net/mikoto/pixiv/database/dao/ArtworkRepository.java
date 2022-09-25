@@ -47,11 +47,4 @@ public interface ArtworkRepository extends JpaRepository<Artwork, Integer> {
             nativeQuery = true
     )
     Page<Artwork> findArtworks(@Param("grading") int grading, @Param("tags") String tags, @Param("title") String title, @Param("authorName") String authorName, Pageable pageable);
-
-    /**
-     * Count all the table.
-     *
-     * @return The
-     */
-    Long countAll();
 }

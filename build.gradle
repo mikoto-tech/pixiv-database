@@ -18,14 +18,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'cn.dev33:sa-token-spring-boot-starter:1.30.0'
+    implementation 'cn.dev33:sa-token-spring-boot-starter:1.31.0'
 
     // Mikoto
     implementation 'net.mikoto.pixiv:pixiv-core:1.4.4-snapshot-1'
 
     // Others
     implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-    implementation 'com.alibaba.fastjson2:fastjson2:2.0.10'
+    implementation 'com.alibaba.fastjson2:fastjson2:2.0.14'
     implementation 'commons-io:commons-io:2.11.0'
     implementation 'mysql:mysql-connector-java:8.0.30'
     implementation 'org.jetbrains:annotations:23.0.0'
