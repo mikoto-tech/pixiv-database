@@ -18,7 +18,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'cn.dev33:sa-token-spring-boot-starter:1.31.0'
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+    implementation 'org.apache.shardingsphere:sharding-jdbc-spring-boot-starter:4.1.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.19.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.19.0'
+    implementation 'com.alibaba:druid:1.2.12'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     // Mikoto
     implementation 'net.mikoto.pixiv:pixiv-core:1.4.4-snapshot-1'
