@@ -1,20 +1,15 @@
 package net.mikoto.pixiv.database.controller;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import net.mikoto.pixiv.core.model.Artwork;
-import net.mikoto.pixiv.database.dao.ArtworkRepository;
+import net.mikoto.pixiv.database.service.ArtworkService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
-
-import static net.mikoto.pixiv.core.constant.HttpApi.*;
+import java.util.List;
 
 /**
  * @author mikoto
@@ -22,48 +17,29 @@ import static net.mikoto.pixiv.core.constant.HttpApi.*;
  */
 @RestController
 @RequestMapping(
-        DATABASE_ARTWORK
+        "/artwork"
 )
 public class ArtworkController {
     /**
      * Instances
      */
-    private final ArtworkRepository artworkRepository;
+    private final ArtworkService artworkService;
 
     @Autowired
-    public ArtworkController(@NotNull ArtworkRepository artworkRepository) {
-        this.artworkRepository = artworkRepository;
+    public ArtworkController(ArtworkService artworkService) {
+        this.artworkService = artworkService;
     }
-//    @Qualifier("centralConnector")
-//    private final CentralConnector centralConnector;
-
-//    @RequestMapping(
-//            value = DATABASE_ARTWORK_INSERT_ARTWORKS,
-//            method = RequestMethod.POST
-//    )
-//    public void insertArtworksHttpApi(@RequestBody @NotNull String data, String token) {
-//        JSONObject inputJsonObject = JSON.parseObject(new String(Base64.getDecoder().decode(data), StandardCharsets.UTF_8));
-//        JSONArray inputArtworks = inputJsonObject.getJSONArray("body");
-//        List<String> checkTokenResult = centralConnector.checkToken(token, INSERT_ARTWORKS);
-//        if (!checkTokenResult.contains(INSERT_ARTWORKS)) {
-//            for (Object artworkJson :
-//                    inputArtworks) {
-//                Artwork artwork = ((JSONObject) artworkJson).to(Artwork.class);
-//                artworkRepository.save(artwork);
-//            }
-//        }
-//    }
 
     @RequestMapping(
-            DATABASE_ARTWORK_GET_ARTWORK
+            "/getArtwork"
     )
     public JSONObject getArtworkHttpApi(@NotNull HttpServletResponse response, int artworkId) {
         response.setContentType("application/json;charset=UTF-8");
         JSONObject jsonObject = new JSONObject();
-        Optional<Artwork> artwork = artworkRepository.findById(artworkId);
-        if (artwork.isPresent()) {
+        Artwork artwork = artworkService.getArtwork(artworkId);
+        if (artwork != null) {
             try {
-                jsonObject.fluentPut("body", artwork.get());
+                jsonObject.fluentPut("body", artwork);
                 jsonObject.fluentPut("success", true);
             } catch (Exception e) {
                 jsonObject.fluentPut("success", false);
@@ -77,30 +53,38 @@ public class ArtworkController {
     }
 
     @RequestMapping(
-            DATABASE_ARTWORK_GET_ARTWORKS
+            "/getArtworks"
     )
-    public JSONObject getArtworksHttpApi(@NotNull HttpServletResponse response, String credential, Sort.Direction order, @NotNull String properties, int pageCount, int grading) {
+    public JSONObject getArtworksHttpApi(@NotNull HttpServletResponse response, String tag, @NotNull String properties, int pageCount, int grading, int size) {
+        if (size == 0) {
+            size = 12;
+        }
+
         response.setContentType("application/json;charset=UTF-8");
-        Page<Artwork> artworkList;
+        List<Artwork> artworkList;
 
         JSONObject jsonObject = new JSONObject();
 
         try {
-//            artworkList = artworkRepository.findArtworks(grading, credential, credential, credential, PageRequest.of(pageCount, 12, order, properties.split(";")));
-            artworkList = null;
-
-            if (artworkList == null || artworkList.isEmpty()) {
+            if (size <= 30) {
+                artworkList = artworkService.getArtworks(
+                        tag,
+                        grading,
+                        properties,
+                        size,
+                        pageCount
+                );
+                if (!artworkList.isEmpty()) {
+                    jsonObject.fluentPut("success", true);
+                    jsonObject.fluentPut("body", artworkList);
+                } else {
+                    jsonObject.fluentPut("success", false);
+                }
+            } else {
                 jsonObject.fluentPut("success", false);
-                return jsonObject;
+                jsonObject.fluentPut("message", "Size too long");
             }
 
-            JSONArray jsonArray = new JSONArray();
-            for (Artwork artwork :
-                    artworkList) {
-                jsonArray.fluentAdd(artwork);
-            }
-            jsonObject.fluentPut("success", true);
-            jsonObject.fluentPut("body", jsonArray);
             return jsonObject;
         } catch (Exception e) {
             jsonObject.fluentPut("success", false);
